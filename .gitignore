@@ -1,0 +1,39 @@
+# processed data files
+processed_data/
+dist
+
+# ghostscript version
+util/append_pdfs/.ignore/
+
+# fig/img files
+*.fig
+*.png
+*.pdf
+
+
+#############
+## Windows detritus
+#############
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Folder config file
+Desktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Mac
+.DS_Store
+
+############
+
+# MATLAB
+*.asv
+
+# temp and backup files
+*.bak
+*.log
+*.tmp
