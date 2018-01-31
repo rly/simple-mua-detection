@@ -5,6 +5,12 @@ pl2FilePath = sprintf('%s/%s/%s', dataDirRoot, sessionName, pl2FileName);
 dataInfo = PL2GetFileIndex(pl2FilePath);
 Fs = dataInfo.TimestampFrequency;
 
+fprintf('----------------------------\n');
+fprintf('Extracting MUA from file %s\n', pl2FilePath);
+fprintf('Session %s\n', sessionName);
+fprintf('Channel index %d\n', spkcChannelInd);
+fprintf('Output to dir: %s\n\n', processedDataRootDir);
+
 %% index all the SPKC channels
 doesSPKCChannelHaveData = false(numel(dataInfo.AnalogChannels), 1);
 fprintf('SPKC channels with data: ');
