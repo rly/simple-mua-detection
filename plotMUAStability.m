@@ -14,7 +14,7 @@ end
 nWindow = numel(nWfByWindow);
 
 %% create figure
-f = figure_tr_inch(10, 10); clf;
+f = figure_tr_inch(13, 13); clf;
 set(gcf, 'Color', 'white');
 set(gcf, 'renderer', 'painters');
 
