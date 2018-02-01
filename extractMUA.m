@@ -99,7 +99,7 @@ assert(size(wf, 1) == size(ts, 1));
 fprintf('\n');
 
 %% plot
-plotFileName = sprintf('%s/%s-%s-extractedMUA.png', processedDataRootDir, sessionName, channelName);
+plotFileName = sprintf('%s/%s-%s-MUA_stability.png', processedDataRootDir, sessionName, channelName);
 plotMUAStability(channelName, t, wf, meanExtractedWaveform, ...
         seExtractedWaveform, thresholds, nWfByWindow, adaptiveThreshWindowLengthOrig, ...
         plotFileName)
@@ -115,3 +115,4 @@ saveFileName = sprintf('%s/%s-%s-MUA.mat', processedDataRootDir, sessionName, ch
 save(saveFileName, 'sessionName', 'channelName', 'pl2FileName', ...
         'wf', 'ts', 'thresholdParams');
 
+fprintf('Done.');
