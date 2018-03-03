@@ -72,7 +72,7 @@ for k = 1:nAdaptiveThreshWindows
             k, nAdaptiveThreshWindows, round(k/nAdaptiveThreshWindows*100), channelName, startTime, endTime);
     % TODO unclear whether PL2AdTimeSpan() uses inclusive endTime
     spkcInfo = PL2AdTimeSpan(pl2FilePath, dataInfo.AnalogChannels{channelID}.Name, startTime, endTime);
-    highPassData = spkcInfo.Values;
+    highPassData = padNaNsToAccountForDropsPL2(spkcInfo);
     clear spkcInfo;
 
     if ~isempty(highPassData)
