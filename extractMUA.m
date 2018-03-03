@@ -62,39 +62,44 @@ fprintf('\nChannel %s:\n', channelName);
 
 thresholds = nan(nAdaptiveThreshWindows, 1);
 extractedWaveforms = cell(nAdaptiveThreshWindows, 1);
-startWaveformInds = cell(nAdaptiveThreshWindows, 1);
+startWaveformTs = cell(nAdaptiveThreshWindows, 1);
 
 for k = 1:nAdaptiveThreshWindows
     startTime = adaptiveThreshWindowStartTimes(k);
-    endTime = startTime + adaptiveThreshWindowLength;
+    endTime = startTime + adaptiveThreshWindowLength - 1/Fs;
 
     fprintf('\nWindow %d/%d (%d%%): Loading data from channel %s: t = %0.1f s to t = %0.1f s...\n', ...
             k, nAdaptiveThreshWindows, round(k/nAdaptiveThreshWindows*100), channelName, startTime, endTime);
-    % TODO unclear whether PL2AdTimeSpan() uses inclusive endTime
+    % PL2AdTimeSpan() uses inclusive endTime
     spkcInfo = PL2AdTimeSpan(pl2FilePath, dataInfo.AnalogChannels{channelID}.Name, startTime, endTime);
-    highPassData = padNaNsToAccountForDropsPL2(spkcInfo);
-    clear spkcInfo;
-
-    if ~isempty(highPassData)
+    if ~isempty(spkcInfo.Values)
+        highPassData = padNaNsToAccountForDropsPL2NoIndexing(spkcInfo);
+        assert(numel(highPassData) <= round((endTime - startTime) * Fs) + 1);
+        spkcInfo.Values = []; % clear
+        
         % extract waveforms via thresholding -- just lower threshold for now
-        [extractedWaveforms{k},startWaveformInds{k},thresholds(k)] = findSpikeWaveformsUsingThreshold(...
+        [extractedWaveforms{k},startWaveformInds,thresholds(k)] = findSpikeWaveformsUsingThreshold(...
                 highPassData, numSDsThresh, nPreThresholdSamples, nPostThresholdSamples, nDeadPostThresholdSamples, ...
                 isUseMAD, doUpperThresh);
 
-        % adjust index for full data
-        startWaveformInds{k} = startWaveformInds{k} + round(startTime * Fs) + 1; % true if start time is 0
+        % adjust local index to index into full data for time calculation
+        startWaveformTs{k} = (startWaveformInds + round(spkcInfo.FragTs(1) * Fs) - 1) / Fs; % true if start time is 0
+        clear highPassData;
     else
+        clear spkcInfo;
+        fprintf('No data in this window.');
         extractedWaveforms{k} = nan(1, nWaveformSamples); % so that cellfun works later
+        startWaveformTs{k} = [];
     end
 end
 
 %% get means and collapse cell arrays
-nWfByWindow = cellfun(@numel, startWaveformInds);
+nWfByWindow = cellfun(@numel, startWaveformTs);
 meanExtractedWaveform = cell2mat(cellfun(@(x) mean(x, 1), extractedWaveforms, 'UniformOutput', false));
 seExtractedWaveform = cell2mat(cellfun(@(x) std(x, 0, 1), extractedWaveforms, 'UniformOutput', false)) ./ sqrt(nWfByWindow);
 wf = cell2mat(extractedWaveforms);
 wf = trimNanRows(wf);
-ts = cell2mat(startWaveformInds) / Fs;
+ts = cell2mat(startWaveformTs);
 assert(size(wf, 1) == size(ts, 1));
 fprintf('\n');
 
@@ -115,4 +120,4 @@ saveFileName = sprintf('%s/%s-%s-MUA.mat', processedDataRootDir, sessionName, ch
 save(saveFileName, 'sessionName', 'channelName', 'pl2FileName', ...
         'wf', 'ts', 'thresholdParams');
 
-fprintf('Done.');
+fprintf('Done.\n');

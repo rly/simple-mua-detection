@@ -3,7 +3,7 @@ function [extractedWaveforms,startWaveformInds] = extractWaveforms(data, isExtre
 % alignTrough - whether to re-align the waveforms based on the minimum
 % in the extracted waveform up to the allowed max shift specified below
 
-% each row is a waveform, columns are samples
+% extractedWaveforms: each row is a waveform, columns are samples
 assert(all(size(data) == size(isExtreme)));
 
 alignToExtremeMaxShiftPreThreshSamples = 0;
@@ -12,12 +12,15 @@ alignToExtremeMaxShiftPostThreshSamples = 10;
 % threshold crossing is when data goes from non-extreme to extreme (0 -> 1)
 diffIsExtreme = diff(isExtreme);
 threshCrossing = find(diffIsExtreme == 1) + 1; % +1 to capture the extreme not the pre-extreme
-fprintf('\tFound %d threshold crossings, ', numel(threshCrossing));
+clear diffIsExtreme;
 
-isGoodThreshCrossing = true(size(isExtreme));
-extractedWaveforms = nan(numel(isExtreme), preExtremeSamples + postExtremeSamples + 1);
-startWaveformInds = nan(numel(isExtreme), 1);
-for i = 1:numel(threshCrossing)
+nThreshCrossing = numel(threshCrossing);
+fprintf('\tFound %d threshold crossings, ', nThreshCrossing);
+
+isGoodThreshCrossing = true(nThreshCrossing, 1);
+extractedWaveforms = nan(nThreshCrossing, preExtremeSamples + postExtremeSamples + 1);
+startWaveformInds = nan(nThreshCrossing, 1);
+for i = 1:nThreshCrossing
     if isGoodThreshCrossing(i)
         % disable any threshold crossings within deadSamplesAfterThreshCrossing after this one
         diffThreshCrossingWithThis = threshCrossing - threshCrossing(i);
