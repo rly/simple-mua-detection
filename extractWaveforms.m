@@ -52,6 +52,8 @@ for i = 1:nThreshCrossing
     end
 end
 
-extractedWaveforms = trimNanRows(extractedWaveforms);
-startWaveformInds = trimNanRows(startWaveformInds);
+% remove waveforms with NaN anywhere in it
+[extractedWaveforms,rowsRemoved] = trimAnyNanRows(extractedWaveforms);
+startWaveformInds(rowsRemoved) = [];
+
 fprintf('extracted %d waveforms.\n', size(extractedWaveforms, 1));
