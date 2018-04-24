@@ -1,15 +1,16 @@
 function extractMUA(processedDataRootDir, dataDirRoot, sessionName, pl2FileName, spkcChannelInd)
 
 %% get PL2 file metadata
+tic;
 pl2FilePath = sprintf('%s/%s/%s', dataDirRoot, sessionName, pl2FileName);
 dataInfo = PL2GetFileIndex(pl2FilePath);
 Fs = dataInfo.TimestampFrequency;
 
 fprintf('----------------------------\n');
-fprintf('Extracting MUA from file %s\n', pl2FilePath);
-fprintf('Session %s\n', sessionName);
-fprintf('Channel index %d\n', spkcChannelInd);
-fprintf('Output to dir: %s\n\n', processedDataRootDir);
+fprintf('Extracting MUA from file: %s\n', pl2FilePath);
+fprintf('Session: %s\n', sessionName);
+fprintf('Channel index: %d\n', spkcChannelInd);
+fprintf('Output to directory: %s\n\n', processedDataRootDir);
 
 %% index all the SPKC channels
 doesSPKCChannelHaveData = false(numel(dataInfo.AnalogChannels), 1);
@@ -17,11 +18,11 @@ fprintf('SPKC channels with data: ');
 for i = 1:numel(dataInfo.AnalogChannels)
     if dataInfo.AnalogChannels{i}.Enabled && strcmp(dataInfo.AnalogChannels{i}.SourceName, 'SPKC') && ...
             dataInfo.AnalogChannels{i}.NumValues > 0 && ...
-            dataInfo.AnalogChannels{i}.Channel <= 125 % SKIP extra analog signal data
+            dataInfo.AnalogChannels{i}.Channel <= 125 % SKIP extra analog signal data (ch 126-128)
         adInfo = PL2AdTimeSpan(pl2FilePath, dataInfo.AnalogChannels{i}.Name, 0, 0.01);
         if any(adInfo.Values)
             fprintf('%d ', i);
-            doesSPKCChannelHaveData(i) = 1;
+            doesSPKCChannelHaveData(i) = true;
         end
     end
 end
@@ -41,9 +42,11 @@ assert(fileStartTime == 0); % if not true, then the indexing later is off
 
 adaptiveThreshWindowLengthOrig = 250; % seconds
 nAdaptiveThreshWindowsOrig = round(fileTotalTime / adaptiveThreshWindowLengthOrig);
-adaptiveThreshWindowLength = ceil(fileTotalTime / nAdaptiveThreshWindowsOrig);
+adaptiveThreshWindowLength = ceil(fileTotalTime / nAdaptiveThreshWindowsOrig); % distribute approximately evenly
 adaptiveThreshWindowStartTimes = fileStartTime:adaptiveThreshWindowLength:fileStopTime;
 nAdaptiveThreshWindows = numel(adaptiveThreshWindowStartTimes);
+fprintf('\nProcessing and thresholding SPKC data in %d windows of length %d seconds.\n', ...
+        nAdaptiveThreshWindows, adaptiveThreshWindowLength);
 
 nPreThresholdSamples = 16;
 nPostThresholdSamples = 40;
@@ -55,9 +58,9 @@ isUseMAD = 0;
 doUpperThresh = 0;
 
 %% process each SPKC channel in windows
+assert(numel(spkcChannelInd) == 1);
 channelID = spkcChannelsToRun(spkcChannelInd);
 channelName = dataInfo.AnalogChannels{channelID}.Name;
-% fprintf('\nChannel %s (%d/%d = %d%%):\n', channelName, i, numel(spkcChannelsToRun), round(i/numel(spkcChannelsToRun)*100));
 fprintf('\nChannel %s:\n', channelName);
 
 thresholds = nan(nAdaptiveThreshWindows, 1);
@@ -70,8 +73,10 @@ for k = 1:nAdaptiveThreshWindows
 
     fprintf('\nWindow %d/%d (%d%%): Loading data from channel %s: t = %0.1f s to t = %0.1f s...\n', ...
             k, nAdaptiveThreshWindows, round(k/nAdaptiveThreshWindows*100), channelName, startTime, endTime);
+
     % PL2AdTimeSpan() uses inclusive endTime
     spkcInfo = PL2AdTimeSpan(pl2FilePath, dataInfo.AnalogChannels{channelID}.Name, startTime, endTime);
+    
     if ~isempty(spkcInfo.Values)
         highPassData = padNaNsToAccountForDropsPL2NoIndexing(spkcInfo);
         assert(numel(highPassData) <= round((endTime - startTime) * Fs) + 1);
@@ -87,7 +92,7 @@ for k = 1:nAdaptiveThreshWindows
         clear highPassData;
     else
         clear spkcInfo;
-        fprintf('No data in this window.');
+        fprintf('No data in this window.\n');
         extractedWaveforms{k} = nan(1, nWaveformSamples); % so that cellfun works later
         startWaveformTs{k} = [];
     end
@@ -97,27 +102,49 @@ end
 nWfByWindow = cellfun(@numel, startWaveformTs);
 meanExtractedWaveform = cell2mat(cellfun(@(x) mean(x, 1), extractedWaveforms, 'UniformOutput', false));
 seExtractedWaveform = cell2mat(cellfun(@(x) std(x, 0, 1), extractedWaveforms, 'UniformOutput', false)) ./ sqrt(nWfByWindow);
-wf = cell2mat(extractedWaveforms);
-wf = trimNanRows(wf);
-ts = cell2mat(startWaveformTs);
-assert(size(wf, 1) == size(ts, 1));
+wfAll = cell2mat(extractedWaveforms);
+wfAll = trimNanRows(wfAll);
+tsAll = cell2mat(startWaveformTs);
+assert(size(wfAll, 1) == size(tsAll, 1));
 fprintf('\n');
+
+%% note putative axonal waveforms
+% 1. maximum before threshold crossing
+[~,i] = max(wfAll, [], 2);
+isPutativeAxon = i < nPreThresholdSamples;
+% 2. triphasic waveform
+% the max before threshold is within 6 samples of threshold (0.15 ms @
+% 40kHz)
+% the max after threshold is within 6 samples of threshold
+axonMaxPreSamplesToThreshold = 6;
+axonMaxPostSamplesToThreshold = 6;
+[~,iPre] = max(wfAll(:,1:nPreThresholdSamples), [], 2);
+[~,iPost] = max(wfAll(:,end-nPostThresholdSamples:end), [], 2);
+isPutativeAxon = isPutativeAxon | ...
+        ((nPreThresholdSamples - iPre + 1) <= axonMaxPreSamplesToThreshold & ...
+        iPost <= axonMaxPostSamplesToThreshold);
+fprintf('%d/%d (%d%%) putative axons\n', sum(isPutativeAxon), numel(tsAll), ...
+        round(sum(isPutativeAxon) / numel(tsAll) * 100));
 
 %% plot
 plotFileName = sprintf('%s/%s-%s-MUA_stability.png', processedDataRootDir, sessionName, channelName);
-plotMUAStability(channelName, t, wf, meanExtractedWaveform, ...
-        seExtractedWaveform, thresholds, nWfByWindow, adaptiveThreshWindowLengthOrig, ...
-        plotFileName)
-
+plotMUAStability(channelName, tsAll, t, wfAll, meanExtractedWaveform, ...
+        seExtractedWaveform, thresholds, nWfByWindow, adaptiveThreshWindowLength, ...
+        isPutativeAxon, plotFileName);
 close;
 
+%% remove putative axonal waveforms
+wf = wfAll(~isPutativeAxon,:);
+ts = tsAll(~isPutativeAxon);
+
 %% save MUA to file
-thresholdParams = var2struct(adaptiveThreshWindowLengthOrig, adaptiveThreshWindowStartTimes, ...
+thresholdParams = var2struct(adaptiveThreshWindowLength, adaptiveThreshWindowStartTimes, ...
         nPreThresholdSamples, nPostThresholdSamples, ...
         nDeadPostThresholdSamples, nWaveformSamples, t, numSDsThresh, isUseMAD, ...
-        doUpperThresh, Fs, thresholds);
+        doUpperThresh, Fs, thresholds, ...
+        axonMaxPreSamplesToThreshold, axonMaxPostSamplesToThreshold);
 saveFileName = sprintf('%s/%s-%s-MUA.mat', processedDataRootDir, sessionName, channelName);
 save(saveFileName, 'sessionName', 'channelName', 'pl2FileName', ...
-        'wf', 'ts', 'thresholdParams');
+        'wf', 'ts', 'wfAll', 'tsAll', 'isPutativeAxon', 'thresholdParams');
 
-fprintf('Done.\n');
+fprintf('Done. Elapsed time: %0.1f min\n', toc/60);

@@ -22,7 +22,7 @@ assert(sum(adInfo.FragCounts) == numel(adInfo.Values));
 % recording. ignore that offset here
 finalLength = round((adInfo.FragTs(end) - adInfo.FragTs(1)) * adInfo.ADFreq) + adInfo.FragCounts(end);
 adAdj = nan(finalLength, 1);
-fprintf('Padding AD signal to account for recording drops: %d -> %d\n', ...
+fprintf('Padding start of AD signal with NaNs to account for recording drops: %d -> %d\n', ...
         numel(adInfo.Values), finalLength);
 
 % the start/end index of each fragment in Values
