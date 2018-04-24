@@ -20,8 +20,12 @@ wfNotAxon = wf(~isPutativeAxon,:);
 nWfNotAxon = size(wfNotAxon, 1);
 meanWfNotAxon = mean(wfNotAxon, 1);
 seWfNotAxon = std(wfNotAxon, 0, 1);
-meanWfAxon = mean(wf(isPutativeAxon,:), 1);
-seWfAxon = std(wf(isPutativeAxon,:), 0, 1);
+
+wfAxon = wf(isPutativeAxon,:);
+nWfAxon = size(wfAxon, 1);
+meanWfAxon = mean(wfAxon, 1);
+seWfAxon = std(wfAxon, 0, 1);
+
 plotWaveformIndsNotAxon = randperm(nWfNotAxon, min(nWfNotAxon, maxWaveformsPlot));
 
 [~,pcaScoreNotAxon,~,~,pcaPctExplainedNotAxon] = pca(wfNotAxon);
@@ -51,8 +55,8 @@ col4PlotW = 0.195;
 
 col1PlotH = 0.15;
 col2PlotH = 0.855;
-col3PlotH = 0.38;
-col4Plot1H = 0.38;
+col3PlotH = 0.385;
+col4Plot1H = 0.385;
 col4Plot2H = 0.15;
 col4Plot3H = 0.15;
 
@@ -68,7 +72,7 @@ col1Plot2Btm = col1Plot3Btm + col1PlotH + 0.085;
 col1Plot1Btm = col1Plot2Btm + col1PlotH + 0.085;
 col2Plot1Btm = btm;
 col3Plot2Btm = btm;
-col3Plot1Btm = col3Plot2Btm + col3PlotH + 0.09;
+col3Plot1Btm = col3Plot2Btm + col3PlotH + 0.085;
 col4Plot1Btm = col3Plot1Btm;
 col4Plot2Btm = col1Plot3Btm;
 col4Plot3Btm = col1Plot4Btm;
@@ -224,6 +228,11 @@ xlabel('Time from Trough (ms)');
 ylabel('Voltage (mV)');
 box off;
 set(gca, 'XTick', -0.4:0.2:1);
+
+text(0.98, 0.18, sprintf('N = %d (%d%%)', nWfNotAxon, round(nWfNotAxon/nWf*100)), 'Color', colNotAxon, 'FontSize', 8, ...
+        'HorizontalAlignment', 'right', 'VerticalAlignment', 'bottom', 'Units', 'normalized');
+text(0.98, 0.1, sprintf('N = %d (%d%%)', nWfAxon, round(nWfAxon/nWf*100)), 'Color', colAxon, 'FontSize', 8, ...
+        'HorizontalAlignment', 'right', 'VerticalAlignment', 'bottom', 'Units', 'normalized');
 
 text(0.98, 0.02, 'Mean +/- 1 SD', 'FontSize', 8, ...
         'HorizontalAlignment', 'right', 'VerticalAlignment', 'bottom', 'Units', 'normalized');
