@@ -2,6 +2,8 @@ function createOfflineSorterInput(processedDataRootDir, sessionName, channelInds
 % create a Plexon Offline Sorter readable .mat file of spike waveforms and 
 % times from the generated MUA files for a session
 
+% output file has waveform data in microvolts
+
 %% read MUA files from individual channels for this session
 
 % The spike waveform data must be contained in a MATLAB cell array of the form
@@ -24,7 +26,7 @@ for i = 1:numel(channelInds)
     fileName = sprintf('%s/%s-SPKC%03d-MUA.mat', processedDataRootDir, sessionName, ci);
     fprintf('(%d/%d = %d%%) Reading file: %s\n', i, numel(channelInds), round(i / numel(channelInds) * 100), fileName);
     L = load(fileName);
-    wfData{ci} = L.wf; % save to index ci to keep the channel number
+    wfData{ci} = L.wf * 1000; % save at index ci to keep the channel number, x1000 to convert mV to uV
     tsData{ci} = L.ts;
 end
 
