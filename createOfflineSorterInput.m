@@ -38,6 +38,6 @@ end
 % use Import Waveform Data from MATLAB function
 
 saveFileName = sprintf('%s/%s-allMUA.mat', processedDataRootDir, sessionName);
-fprintf('Writing compiled MUA waveforms and timestamps to file: %s\n', saveFileName);
-save(saveFileName, 'wfData', 'tsData');
+fprintf('Writing compiled MUA waveforms, timestamps, and threshold parameters to file: %s\n', saveFileName);
+save(saveFileName, 'wfData', 'tsData', 'thresholdParamsData');
 
