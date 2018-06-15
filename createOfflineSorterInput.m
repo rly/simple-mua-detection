@@ -39,5 +39,5 @@ end
 
 saveFileName = sprintf('%s/%s-allMUA.mat', processedDataRootDir, sessionName);
 fprintf('Writing compiled MUA waveforms, timestamps, and threshold parameters to file: %s\n', saveFileName);
-save(saveFileName, 'wfData', 'tsData', 'thresholdParamsData');
+save(saveFileName, 'wfData', 'tsData', 'thresholdParamsData', '-v7.3');
 
