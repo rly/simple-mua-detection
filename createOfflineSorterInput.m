@@ -21,6 +21,8 @@ wfData = cell(max(channelInds), 1);
 % values can be interpreted as either Seconds, milliSeconds, or Clock ticks.
 tsData = cell(max(channelInds), 1);
 
+% also save threshold params for later use
+
 for i = 1:numel(channelInds)
     ci = channelInds(i);
     fileName = sprintf('%s/%s-SPKC%03d-MUA.mat', processedDataRootDir, sessionName, ci);
@@ -28,6 +30,8 @@ for i = 1:numel(channelInds)
     L = load(fileName);
     wfData{ci} = L.wf * 1000; % save at index ci to keep the channel number, x1000 to convert mV to uV
     tsData{ci} = L.ts;
+    
+    thresholdParamsData(ci) = L.thresholdParams;
 end
 
 %% save MUA wf, ts data to .mat file for importing in Plexon Offline Sorter
