@@ -33,6 +33,8 @@ spkcChannelsToRun = find(doesSPKCChannelHaveData);
 %% set up thresholding parameters
 % adaptive thresholding: window ~250 seconds, adjusted to make each window
 % equally sized
+% caveat to this method: it can be noisy/skewed if there are few data in 
+% a window due to time between blocks
 blockStartTimes = PL2StartStopTs(pl2FilePath, 'start');
 blockStopTimes = PL2StartStopTs(pl2FilePath, 'stop');
 fileStartTime = blockStartTimes(1); % include non-recorded time

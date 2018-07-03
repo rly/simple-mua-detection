@@ -6,7 +6,7 @@ function [extractedWaveforms,startWaveformInds,threshold] = findSpikeWaveformsUs
 
 data = makeRowVector(data);
 
-%% compute noise level
+%% compute initial noise level
 % remove waveforms 10 samples pre (0.25 ms @ 40 kHz) and 30 samples post
 % (0.75 ms @ 40 kHz) threshold crossings
 initNumSDsThresh = 3; % both + and -
@@ -20,7 +20,7 @@ dataNotExtremeInit = data(~isExtremeInit);
 %% find threshold crossings using above noise level
 meanAdjData = nanmean(dataNotExtremeInit);
 if isUseMAD % median absolute deviation - more robust than SD
-    sdAdjData = mad(dataNotExtremeInit, 1);
+    sdAdjData = mad(dataNotExtremeInit / 0.6745, 1) ; % see Quian Quiroga et al., 2004
 else
     sdAdjData = nanstd(dataNotExtremeInit);
 end

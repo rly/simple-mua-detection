@@ -7,7 +7,7 @@ function [extractedWaveforms,startWaveformInds] = extractWaveforms(data, isExtre
 assert(all(size(data) == size(isExtreme)));
 
 alignToExtremeMaxShiftPreThreshSamples = 0;
-alignToExtremeMaxShiftPostThreshSamples = 10;
+alignToExtremeMaxShiftPostThreshSamples = 40;
 
 % threshold crossing is when data goes from non-extreme to extreme (0 -> 1)
 diffIsExtreme = diff(isExtreme);
