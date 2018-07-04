@@ -41,3 +41,6 @@ saveFileName = sprintf('%s/%s-allMUA.mat', processedDataRootDir, sessionName);
 fprintf('Writing compiled MUA waveforms, timestamps, and threshold parameters to file: %s\n', saveFileName);
 save(saveFileName, 'wfData', 'tsData', 'thresholdParamsData', '-v7.3');
 
+%% break up offline sorter input into manageable files
+breakUpOfflineSorterInput(processedDataRootDir, sessionName);
+
