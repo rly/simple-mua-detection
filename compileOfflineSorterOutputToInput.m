@@ -4,6 +4,9 @@ function compileOfflineSorterOutputToInput(processedDataRootDir, sessionName, ch
 
 % output file has waveform data in microvolts
 
+% channelInds should be all channel inds of this session
+% code does not yet work for selective channels
+
 %% read MUA files from individual channels for this session
 
 % The spike waveform data must be contained in a MATLAB cell array of the form
@@ -27,39 +30,43 @@ tsData = cell(max(channelInds), 1);
 % array. 0 = unsorted.
 % the unit index / id for each waveform
 unitIndInChannelData = cell(max(channelInds), 1);
+for i = 1:max(channelInds)
+    unitIndInChannelData{i} = int16(zeros(0, 1));
+end
+
+% also save threshold params for later use
+fileName = sprintf('%s/%s-allMUA.mat', processedDataRootDir, sessionName);
+fprintf('Reading file: %s\n', fileName);
+LTPD = load(fileName, 'thresholdParamsData');
 
 for i = 1:numel(channelInds)
     ci = channelInds(i);
+    thresholdParamsData(ci) = LTPD.thresholdParamsData(ci);
     
-    % also save threshold params for later use
-    fileName = sprintf('%s/%s-SPKC%03d-MUA.mat', processedDataRootDir, sessionName, ci);
+    fileName = sprintf('%s/%s-SUA_%03d.mat', processedDataRootDir, sessionName, ci-1);
     fprintf('(%d/%d = %d%%) Reading file: %s\n', i, numel(channelInds), round(i / numel(channelInds) * 100), fileName);
-    L = load(fileName);
-    thresholdParamsData(ci) = L.thresholdParams;
-    
-    fileName = sprintf('%s/%s-SUA_%03d.mat', processedDataRootDir, sessionName, ci - 1);
-    fprintf('(%d/%d = %d%%) Reading file: %s\n', i, numel(channelInds), round(i / numel(channelInds) * 100), fileName);
-    L = load(fileName, sprintf('wfData%d', ci-1));
-    suaData = L.(sprintf('wfData%d', ci-1));
+    LWF = load(fileName, sprintf('wfData%d', ci-1));
+    suaData = LWF.(sprintf('wfData%d', ci-1));
     % suaData should have waveform x data where
     % suaData(:,1) = channel number
     % suaData(:,2) = unit id (0 = unsorted)
-    % suaData(:,3) = timestamp in ms (time of wf minimum after threshold crossing)
+    % suaData(:,3) = timestamp in s (time of wf minimum after threshold crossing)
     % suaData(:,4:nSamples+3) = waveform in microvolts
-    assert(all(suaData(:,1) == i));
+    assert(all(suaData(:,1) == ci));
     
     wfData{ci} = suaData(:,4:end); % save at index ci to keep the channel number
-    tsData{ci} = suaData(:,3);
-    unitIndInChannelData{ci} = suaData(:,2);
+    tsData{ci} = suaData(:,3); % seconds
+    unitIndInChannelData{ci} = int16(suaData(:,2));
 end
 
 %% save MUA wf, ts data to .mat file for importing in Plexon Offline Sorter
 % use Import Waveform Data from MATLAB function
 
-saveFileName = sprintf('%s/%s-sortedSUA.mat', processedDataRootDir, sessionName);
+fileAppend = 'sortedSUA';
+saveFileName = sprintf('%s/%s-%s.mat', processedDataRootDir, sessionName, fileAppend);
 fprintf('Writing compiled MUA waveforms, timestamps, and threshold parameters to file: %s\n', saveFileName);
 save(saveFileName, 'wfData', 'tsData', 'thresholdParamsData', 'unitIndInChannelData', '-v7.3');
 
 %% break up offline sorter input into manageable files
-breakUpOfflineSorterInput(processedDataRootDir, sessionName, 'sortedSUA', 'sortedSUA');
+breakUpOfflineSorterInput(processedDataRootDir, sessionName, fileAppend, fileAppend);
 

@@ -27,6 +27,9 @@ tsData = cell(max(channelInds), 1);
 % array. 0 = unsorted.
 % the unit index / id for each waveform. set all here to 0
 unitIndInChannelData = cell(max(channelInds), 1);
+for i = 1:max(channelInds)
+    unitIndInChannelData{i} = int16(zeros(0, 1));
+end
 
 % also save threshold params for later use
 
@@ -36,8 +39,8 @@ for i = 1:numel(channelInds)
     fprintf('(%d/%d = %d%%) Reading file: %s\n', i, numel(channelInds), round(i / numel(channelInds) * 100), fileName);
     L = load(fileName);
     wfData{ci} = L.wf * 1000; % save at index ci to keep the channel number, x1000 to convert mV to uV
-    tsData{ci} = L.ts;
-    unitIndInChannelData{ci} = zeros(size(L.ts));
+    tsData{ci} = L.ts; % seconds
+    unitIndInChannelData{ci} = int16(zeros(size(L.ts)));
     
     thresholdParamsData(ci) = L.thresholdParams;
 end
