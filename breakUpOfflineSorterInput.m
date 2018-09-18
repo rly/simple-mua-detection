@@ -97,7 +97,7 @@ if maxChannels > 64
     tsData = M.tsData;
     wfData = M.wfData;
     unitIndInChannelData = M.unitIndInChannelData;
-    outFileName = sprintf('%s-%s-%d-%d.mat', outFileNameBase, fileOutAppend, 33, 48);
+    outFileName = sprintf('%s-%s-%d-%d.mat', outFileNameBase, fileOutAppend, 65, 80);
     save(outFileName, 'tsData', 'wfData', 'unitIndInChannelData', 'thresholdParamsData', '-v7.3');
     fprintf('Saved to file %s.\n', outFileName);
 
@@ -112,7 +112,7 @@ if maxChannels > 64
     tsData = M.tsData;
     wfData = M.wfData;
     unitIndInChannelData = M.unitIndInChannelData;
-    outFileName = sprintf('%s-%s-%d-%d.mat', outFileNameBase, fileOutAppend, 49, 64);
+    outFileName = sprintf('%s-%s-%d-%d.mat', outFileNameBase, fileOutAppend, 81, 96);
     save(outFileName, 'tsData', 'wfData', 'unitIndInChannelData', 'thresholdParamsData', '-v7.3');
     fprintf('Saved to file %s.\n', outFileName);
 end
