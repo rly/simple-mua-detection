@@ -83,7 +83,7 @@ if maxChannels > 32
     fprintf('Saved to file %s.\n', outFileName);
 end
 
-if maxChannels > 96
+if maxChannels > 64
     % save 65-80
     M = L;
     for i = 1:64
