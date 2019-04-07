@@ -24,9 +24,11 @@ To verify the spike detection algorithm, a .png file is created for each channel
 A Matlab file is created with the extracted waveform voltages and timestamps. These spikes are considered multi-unit activity (MUA). A logical variable indicating whether each waveform is a putative axon is also output.
 
 ## Plexon Offline Sorter Tools
-The function `createOfflineSorterInput` reads the Matlab output files generated above associated with the selected channels and combines them into Matlab files (16 channels per file) for importing into Plexon's Offline Sorter spike sorting program.
+The function `tools/createOfflineSorterInput` reads the Matlab output files generated above associated with the selected channels and combines them into Matlab files (16 channels per file) for importing into Plexon's Offline Sorter spike sorting program.
 
-The function `compileOfflineSorterOutputToInput` reads the Matlab output files (sorted waveforms per channel) exported from Offline Sorter and combines them into Matlab files (16 channels per file) for importing into Plexon's Offline Sorter spike sorting program.
+The function `tools/compileOfflineSorterOutputToInput` reads the Matlab output files (sorted waveforms per channel) exported from Offline Sorter and combines them into Matlab files (16 channels per file) for importing into Plexon's Offline Sorter spike sorting program.
+
+The function `tools/findAllEventCodesPL2` reads the Plexon PL2 file, which contains event trigger times across event channels, and returns the consolidated event times and event codes. 
 
 ## Setup 
 
