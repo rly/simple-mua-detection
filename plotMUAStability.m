@@ -83,7 +83,7 @@ hold on;
 plot(t([1 end]), [0 0], 'Color', 0.5*ones(3, 1));
 plot(t, wf(plotWaveformInds,:)');
 xlim(t([1 end]));
-ylim([-0.12 0.12]);
+% ylim([-0.12 0.12]);
 
 title('Sample Waveforms');
 xlabel('Time from Trough (ms)');
@@ -108,7 +108,7 @@ set(gca, 'XTick', -0.4:0.2:1);
 axes('Position', [col1Left col1Plot3Btm col1PlotW col1PlotH]); 
 plot(thresholds, '.-', 'MarkerSize', 20);
 xlim([0 nWindow+1]);
-ylim([-0.05 -0.025]);
+% ylim([-0.05 -0.025]);
 
 title('Spike Thresholds by Window');
 xlabel('Window Index');
@@ -128,7 +128,7 @@ box off;
 %% ridge line plot of mean waveforms by window
 axes('Position', [col2Left col2Plot1Btm col2PlotW col2PlotH]); 
 hold on;
-yScale = 50;
+yScale = 5;
 col = [0 0 0];
 for k = 1:nWindow
     if ~all(isnan(meanExtractedWaveform(k,:)))
