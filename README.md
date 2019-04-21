@@ -32,7 +32,7 @@ The function `tools/findAllEventCodesPL2` reads the Plexon PL2 file, which conta
 
 ## Setup 
 
-Run `setProjectPath` to set the project path for the scripts in this repo.
+Run `setup` to set the project path for the scripts in this repo.
 
 ## Contact
 
