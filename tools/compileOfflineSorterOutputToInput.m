@@ -6,6 +6,7 @@ function compileOfflineSorterOutputToInput(processedDataRootDir, sessionName, ch
 
 % channelInds should be all channel inds of this session
 % code does not yet work for selective channels
+% TODO adapt to work like createOfflineSorterInput.m
 
 %% read MUA files from individual channels for this session
 
